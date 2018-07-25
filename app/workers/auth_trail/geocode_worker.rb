@@ -2,7 +2,7 @@ module AuthTrail
   class GeocodeWorker
     include Sidekiq::Worker
     sidekiq_options queue: AuthTrail.geocode_queue
--
+
     def perform(login_activity_id)
       login_activity = LoginActivity.find(login_activity_id)
       result =
