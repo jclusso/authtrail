@@ -9,9 +9,11 @@ require "auth_trail/version"
 
 module AuthTrail
   class << self
-    attr_accessor :exclude_method, :geocode, :track_method, :identity_method
+    attr_accessor :exclude_method, :geocode, :geocode_queue, :track_method,
+      :identity_method
   end
   self.geocode = true
+  self.geocode_queue = 'low'
   self.identity_method = lambda do |request, opts, user|
     if user
       user.try(:email)
@@ -46,7 +48,9 @@ module AuthTrail
         AuthTrail.track_method.call(info)
       else
         login_activity = LoginActivity.create!(info)
-        AuthTrail::GeocodeJob.perform_later(login_activity) if AuthTrail.geocode
+        if AuthTrail.geocode
+          AuthTrail::GeocodeWorker.perform_async(login_activity.id.to_s)
+        end
       end
     end
   end
