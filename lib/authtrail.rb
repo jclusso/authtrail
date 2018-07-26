@@ -1,5 +1,6 @@
 # dependencies
 require "geocoder"
+require "browser"
 require "warden"
 
 # modules
@@ -24,6 +25,8 @@ module AuthTrail
   end
 
   def self.track(strategy:, scope:, identity:, success:, request:, user: nil, failure_reason: nil)
+    ua = request.user_agent
+    browser = Browser.new(ua)
     info = {
       strategy: strategy,
       scope: scope,
@@ -32,8 +35,10 @@ module AuthTrail
       failure_reason: failure_reason,
       user: user,
       ip: request.remote_ip,
-      user_agent: request.user_agent,
-      referrer: request.referrer
+      user_agent: ua,
+      referrer: request.referrer,
+      browser: browser.name,
+      platform: browser.platform.name
     }
 
     if request.params[:controller]
